@@ -31,7 +31,7 @@ class SquareMatrix {
   }
 
   void swap_rows(std::size_t lhs_idx, std::size_t rhs_idx) {
-    return storage_.swap_rows(lhs_idx, rhs_idx);
+    storage_.swap_rows(lhs_idx, rhs_idx);
   }
 
  private:
