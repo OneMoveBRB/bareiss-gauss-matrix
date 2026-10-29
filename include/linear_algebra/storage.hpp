@@ -22,17 +22,17 @@ class RowView {
 template <typename T>
 class ContiguousStorage {
  public:
-  explicit ContiguousStorage(std::size_t length)
-      : length_(length), data_(length ? new T[length * length]() : nullptr) {}
+  explicit ContiguousStorage(std::size_t size)
+      : size_(size), data_(size ? new T[size * size]() : nullptr) {}
 
   ContiguousStorage(const ContiguousStorage& other)
-      : ContiguousStorage(other.length_) {
-    std::copy(other.data_, other.data_ + length_ * length_, data_);
+      : ContiguousStorage(other.size_) {
+    std::copy(other.data_, other.data_ + size_ * size_, data_);
   }
 
   ContiguousStorage(ContiguousStorage&& other) noexcept
-      : length_(other.length_), data_(other.data_) {
-    other.length_ = 0;
+      : size_(other.size_), data_(other.data_) {
+    other.size_ = 0;
     other.data_ = nullptr;
   }
 
@@ -50,11 +50,10 @@ class ContiguousStorage {
     return *this;
   }
 
-  std::size_t size() const { return length_; }
-  std::size_t length() const { return length_; }
+  std::size_t size() const { return size_; }
 
-  T* row(std::size_t idx) { return data_ + length_ * idx; }
-  const T* row(std::size_t idx) const { return data_ + length_ * idx; }
+  T* row(std::size_t idx) { return data_ + size_ * idx; }
+  const T* row(std::size_t idx) const { return data_ + size_ * idx; }
 
   RowView<T> operator[](std::size_t row_idx) {
     return RowView<T>(row(row_idx));
@@ -64,27 +63,27 @@ class ContiguousStorage {
   }
 
   void swap_rows(std::size_t lhs_idx, std::size_t rhs_idx) {
-    std::swap_ranges(row(lhs_idx), row(lhs_idx) + length_, row(rhs_idx));
+    std::swap_ranges(row(lhs_idx), row(lhs_idx) + size_, row(rhs_idx));
   }
 
   void swap(ContiguousStorage& other) noexcept {
-    std::swap(length_, other.length_);
+    std::swap(size_, other.size_);
     std::swap(data_, other.data_);
   }
 
  private:
-  std::size_t length_;
+  std::size_t size_;
   T* data_;
 };
 
 template <typename T>
 class JaggedStorage {
  public:
-  explicit JaggedStorage(std::size_t length)
-      : length_(length), rows_(length ? new T*[length]() : nullptr) {
+  explicit JaggedStorage(std::size_t size)
+      : size_(size), rows_(size ? new T*[size]() : nullptr) {
     try {
-      for (std::size_t i = 0; i < length_; ++i) {
-        rows_[i] = new T[length_]();
+      for (std::size_t i = 0; i < size_; ++i) {
+        rows_[i] = new T[size_]();
       }
     } catch (...) {
       release();
@@ -92,15 +91,15 @@ class JaggedStorage {
     }
   }
 
-  JaggedStorage(const JaggedStorage& other) : JaggedStorage(other.length_) {
-    for (std::size_t i = 0; i < length_; ++i) {
-      std::copy(other.rows_[i], other.rows_[i] + length_, rows_[i]);
+  JaggedStorage(const JaggedStorage& other) : JaggedStorage(other.size_) {
+    for (std::size_t i = 0; i < size_; ++i) {
+      std::copy(other.rows_[i], other.rows_[i] + size_, rows_[i]);
     }
   }
 
   JaggedStorage(JaggedStorage&& other) noexcept
-      : length_(other.length_), rows_(other.rows_) {
-    other.length_ = 0;
+      : size_(other.size_), rows_(other.rows_) {
+    other.size_ = 0;
     other.rows_ = nullptr;
   }
 
@@ -118,8 +117,7 @@ class JaggedStorage {
     return *this;
   }
 
-  std::size_t size() const { return length_; }
-  std::size_t length() const { return length_; }
+  std::size_t size() const { return size_; }
 
   T* row(std::size_t idx) { return rows_[idx]; }
   const T* row(std::size_t idx) const { return rows_[idx]; }
@@ -136,7 +134,7 @@ class JaggedStorage {
   }
 
   void swap(JaggedStorage& other) noexcept {
-    std::swap(length_, other.length_);
+    std::swap(size_, other.size_);
     std::swap(rows_, other.rows_);
   }
 
@@ -146,14 +144,14 @@ class JaggedStorage {
       return;
     }
 
-    for (std::size_t i = 0; i < length_; ++i) {
+    for (std::size_t i = 0; i < size_; ++i) {
       delete[] rows_[i];
     }
 
     delete[] rows_;
   }
 
-  std::size_t length_;
+  std::size_t size_;
   T** rows_;
 };
 
